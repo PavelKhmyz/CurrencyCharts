@@ -36,7 +36,18 @@ async function bla () {
     const data = await sendRequest(url);
     const result = [];
     data.forEach(element => {
-        result.push(element.Cur_ParentID + element.Cur_Name)
+        result.push(element.Cur_Name)
     });
-    return result;
+    return select(result);
+}
+
+function select(result){
+    const uniqueChars = result.filter((element, index) => {
+        return result.indexOf(element) === index;
+    });
+    uniqueChars.forEach(element => {
+        const data = document.createElement('option');
+        data.setAttribute('value', `${element}`);
+        document.querySelector('#choise').append(data);
+    });
 }
