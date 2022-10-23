@@ -67,62 +67,78 @@ async function search(data){
         }
     })
     console.log(curArr);
-    getRate(curArr, data)
-    
-    // const dinamicUrl = `https://www.nbrb.by/api/exrates/rates/dynamics/${lol.Cur_ID}?startDate=${data.dateTo}&endDate=${data.dateFrom}`;
-    
-    // const getDinamics = await sendRequest(dinamicUrl);
-    // console.log(getDinamics)
+    getRate(curArr, data);
 };
 
 async function getRate(curArr, data){
-    let startDate = data.dateTo; 
-    const bla = new Date(data.dateTo);
-    bla.setFullYear(bla.getFullYear() + 1);
-    let endDate = `${bla.getFullYear()}-${bla.getMonth()}-${bla.getDate()}`
-    
-       
+    const startDate = data.dateTo;
+    const endDate = data.dateFrom;
+    let requestCounter = Math.floor(((new Date(endDate) - new Date(startDate))) / year);
+    const rateArr = [];
+
+    let start = startDate;
+
+    const parseDate = new Date(start);
+    parseDate.setFullYear(parseDate.getFullYear() + 1);
+
+    let end =  `${parseDate.getFullYear()}-${parseDate.getMonth() + 1}-${parseDate.getDate()}`;
     let curId;
-    
 
     for(let i = 0; i < curArr.length; i++){
-        if(new Date(startDate) >= new Date(curArr[i].Cur_DateStart)){
+        if (+ new Date(start) > + new Date(curArr[i].Cur_DateEnd)){
+
+        }
+        else {
             curId = curArr[i].Cur_ID;
         };
     };
 
-    let dinamicUrl = `https://www.nbrb.by/api/exrates/rates/dynamics/${curId}?startDate=${startDate}&endDate=${endDate}`;
-    
-    // const requestCounter = Math.floor((new Date(data.dateFrom) - new Date(data.dateTo)) / year);
-    // const rateArr = [];
-    // for(let i = 0; i < requestCounter; i++){
-    //     const request = await sendRequest(dinamicUrl)
-    //     rateArr.push(request);
+    for(let i = 0; i < requestCounter; i++){
+        for(let i = 0; i < curArr.length; i++){
+            if(+ new Date(start) > + new Date(curArr[i].Cur_DateEnd)){
 
-    //     const changeEndDate = new Date(endDate);
-    //     changeEndDate.setFullYear(changeEndDate.getFullYear + 1);
-    //     const changeStartDate = new Date(startDate);
-    //     changeStartDate.setFullYear(changeStartDate.getFullYear + 1);
+            }
+            else if(+ new Date(start) >= + new Date(curArr[i].Cur_DateStart) && + new Date(end) <= + new Date(curArr[i].Cur_DateEnd)){
+                    curId = curArr[i].Cur_ID;
 
-    //     endDate = `${changeEndDate.getFullYear()}-${changeEndDate.getMonth()}-${changeEndDate.getDate()}`;
-    //     startDate = `${changeStartDate.getFullYear()}-${changeStartDate.getMonth()}-${changeStartDate.getDate()}`;
+                    const makeUrl = createUrl(curId, start, end);
+                    const request = await sendRequest(makeUrl);
+                    rateArr.push(request);
 
-    //     for(let i = 0; i < curArr.length; i++){
-    //         if(new Date(startDate) >= new Date(curArr[i].Cur_DateStart) && new Date(endDate) <= new Date(curArr[i].Cur_DateEnd)){
-    //             curId = curArr[i].Cur_ID;
-    //         }
-    //         // else if(new Date(startDate) >= new Date(curArr[i].Cur_DateStart)){
-    //         //     curId = curArr[i].Cur_ID;
-    //         //     startDate = 
-    //         // }
-    //         console.log(startDate, endDate, changeEndDate, changeStartDate)
-    //     };
-    // }
-    console.log(dinamicUrl);
-}
+                    start = end;
 
-function testDate(){
-    const date = new Date('2020-10-10');
-    date.setFullYear(date.getFullYear() + 1)
-    return date;
-}
+                    const lol = new Date(start);
+                    lol.setFullYear(lol.getFullYear() + 1);
+                    end = `${lol.getFullYear()}-${lol.getMonth() + 1}-${lol.getDate()}`;
+
+                    break;
+            }
+            else if(+ new Date(start) >= + new Date(curArr[i].Cur_DateStart) && + new Date(end) > + new Date(curArr[i].Cur_DateEnd)){
+                curId = curArr[i].Cur_ID;                   
+                end = curArr[i].Cur_DateEnd;
+
+                const makeUrl = createUrl(curId, start, end);
+                const request = await sendRequest(makeUrl);
+                rateArr.push(request);
+
+                requestCounter += 1;
+                    
+                const lol = new Date(end);
+                lol.setDate(lol.getDate() + 1);
+                start = `${lol.getFullYear()}-${lol.getMonth() + 1}-${lol.getDate()}`;
+
+                const bla = new Date(start);
+                bla.setFullYear(bla.getFullYear() + 1);
+                end = `${bla.getFullYear()}-${bla.getMonth() + 1}-${bla.getDate()}`;
+                console.log(start, end, curId);
+                    
+                break;
+            };
+        };
+    };
+    console.log(rateArr);
+};
+
+function createUrl(curId, start, end) {
+    return `https://www.nbrb.by/api/exrates/rates/dynamics/${curId}?startDate=${start}&endDate=${end}`;
+};
