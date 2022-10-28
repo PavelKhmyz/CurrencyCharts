@@ -13,8 +13,8 @@ document.querySelector('.yearPeriod').addEventListener('click', () => changePeri
 document.querySelector('.showButton').addEventListener('click', () => getUserData());
 
 function changePeriod(option){
-    document.querySelector('.dateFrom').valueAsDate = new Date();
     const newActualDate = new Date() - option;
+    document.querySelector('.dateFrom').valueAsDate = new Date();
     document.querySelector('.dateTo').valueAsDate = new Date(newActualDate);
 };
 
@@ -28,10 +28,19 @@ async function compliteDataList(){
         return result.indexOf(element) === index;
     });
     uniqueChars.forEach(element => {
-        const data = document.createElement('option');
-        data.setAttribute('value', `${element}`);
-        document.querySelector('#choise').append(data);
+        const option = document.createElement('option');
+        option.setAttribute('value', `${element}`);
+        document.querySelector('#choise').append(option);
     });
 };
+
+function getUserData(){
+    const userData = {};
+    userData.currencyName = document.querySelector('.currencyName').value;
+    userData.dateFrom = document.querySelector('.dateFrom').value;
+    userData.dateTo = document.querySelector('.dateTo').value;
+    console.log(userData);
+    search(userData);
+}
 
 compliteDataList();

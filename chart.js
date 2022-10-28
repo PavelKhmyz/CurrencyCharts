@@ -91,8 +91,8 @@ const actions = [
     }
 ];
 
-const labels = chartDate;
-const rate = chartRate;
+const labels = [];
+const rate = [];
   
 const data = {
     labels: labels,
@@ -121,4 +121,34 @@ const config = {
             }
         }
     }
+};
+
+let chart;
+
+function parseForChart(rateArr){ // привести функцию в божеский вид
+    labels.length = 0;
+    rate.length = 0;
+    let bla;
+    rateArr.rate.forEach(element => {
+        for(let i = 0; i < element.length; i++){
+            labels.push(element[i].Date.slice(0, 10));
+            if(element[i].Cur_Scale === rateArr.curScale){
+              bla = element[i].Cur_OfficialRate;
+            }
+            else{
+              bla = element[i].Cur_OfficialRate * (rateArr.curScale / element[i].Cur_Scale);
+            };
+            if (bla > 100){
+              bla = bla / 10000;
+            };
+            rate.push(bla)
+        };
+    });
+    if(chart){
+        chart.destroy()
+    }
+    chart = new Chart(
+        document.getElementById('myChart'),
+        config
+    );
 };
