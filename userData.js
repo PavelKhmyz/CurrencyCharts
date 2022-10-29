@@ -36,9 +36,15 @@ async function compliteDataList(){
 
 function getUserData(){
     const userData = {};
+
+    const change = new Date(document.querySelector('.dateFrom').value)
+    change.setDate(change.getDate() + 1);
+
     userData.currencyName = document.querySelector('.currencyName').value;
-    userData.dateFrom = document.querySelector('.dateFrom').value;
+    userData.dateFrom = `${change.getFullYear()}-${change.getMonth() + 1}-${change.getDate()}`;
     userData.dateTo = document.querySelector('.dateTo').value;
+    userData.userDateFrom = document.querySelector('.dateFrom').value;
+    userData.userDateTo = document.querySelector('.dateTo').value;
     console.log(userData);
     search(userData);
 }

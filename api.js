@@ -16,28 +16,17 @@ async function search(data){
             curArr.push(element)
         };
     });
-    if(!data.dateTo){
-        getDailyCur(curArr, data);
-    }
-    else if(new Date(data.dateFrom) - new Date(data.dateTo) < year){
-        const changeDate = new Date(new Date(data.dateFrom) - year);
+    
+    if(!data.dateTo || new Date(data.dateFrom) - new Date(data.dateTo) < year){
+        const changeDate = new Date(data.dateFrom);
+        changeDate.setFullYear(new Date(changeDate).getFullYear() - 1);
         data.dateTo = `${changeDate.getFullYear()}-${changeDate.getMonth() + 1}-${changeDate.getDate()}`;
         getRate(curArr, data);
     }
     else{
         getRate(curArr, data);
-    }
-    console.log(curArr);
+    };
 };
-
-async function getDailyCur(curArr, data){
-    const curId = getCurId(curArr, data);
-    const rateArr = [];
-    const createUrl = `https://www.nbrb.by/api/exrates/rates/${curId}?ondate=${data.dateFrom}`; // попробовать написать универсальную функцию для создания ссылок
-    const request = await sendRequest(createUrl);
-    rateArr.push(request);
-    console.log(rateArr);
-}
 
 function getCurId(curArr, data){
     for(let i = 0; i < curArr.length; i++){
@@ -63,7 +52,7 @@ function getCurScale(curArr){
 async function getRate(curArr, data){
     const rateArr = {curScale: getCurScale(curArr), rate: []};
     
-    let requestCounter = Math.floor(((new Date(data.dateFrom) - new Date(data.dateTo))) / year);
+    let requestCounter = Math.ceil(((new Date(data.dateFrom) - new Date(data.dateTo))) / year);
     let start = data.dateTo;
     let end =  `${new Date(start).getFullYear() + 1}-${new Date(start).getMonth() + 1}-${new Date(start).getDate()}`;
     let curId = getCurId(curArr, data);
@@ -104,15 +93,17 @@ async function getRate(curArr, data){
 
                 requestCounter += 1;
 
-                start = `${new Date(end).getFullYear() + 1}-${new Date(end).getMonth() + 1}-${new Date(end).getDate()}`;
+                const setDate = new Date(end);
+                setDate.setDate(setDate.getDate() + 1)
+
+                start = `${setDate.getFullYear()}-${setDate.getMonth() + 1}-${setDate.getDate()}`;
                 end = `${new Date(start).getFullYear() + 1}-${new Date(start).getMonth() + 1}-${new Date(start).getDate()}`;
                 
                 break;
             };
         };
     };
-    console.log(rateArr)
-    parseForChart(rateArr)
+    parseForChart(rateArr, data)
 };
 
 function createUrl(curId, start, end) {
