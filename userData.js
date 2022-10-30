@@ -1,16 +1,14 @@
 const url = 'https://www.nbrb.by/api/exrates/currencies';
+const day = 86400000;
 const month = 2628000000;
 const quarter = month * 3;
 const year = month * 12;
 
-
 document.querySelector('.dateFrom').valueAsDate = new Date();
-
 document.querySelector('.monthPeriod').addEventListener('click', () => changePeriod(month));
 document.querySelector('.quarterPeriod').addEventListener('click', () => changePeriod(quarter));
 document.querySelector('.yearPeriod').addEventListener('click', () => changePeriod(year));
-
-document.querySelector('.showButton').addEventListener('click', () => getUserData());
+document.querySelector('.showButton').addEventListener('click', () => main());
 
 function changePeriod(option){
     const newActualDate = new Date() - option;
@@ -36,17 +34,17 @@ async function compliteDataList(){
 
 function getUserData(){
     const userData = {};
-
     const change = new Date(document.querySelector('.dateFrom').value)
     change.setDate(change.getDate() + 1);
 
     userData.currencyName = document.querySelector('.currencyName').value;
-    userData.dateFrom = `${change.getFullYear()}-${change.getMonth() + 1}-${change.getDate()}`;
-    userData.dateTo = document.querySelector('.dateTo').value;
+    userData.dateFrom = + new Date(change);
+    userData.dateTo = + new Date(document.querySelector('.dateTo').value);
     userData.userDateFrom = document.querySelector('.dateFrom').value;
     userData.userDateTo = document.querySelector('.dateTo').value;
     console.log(userData);
-    search(userData);
+    // search(userData);
+    return userData;
 }
 
 compliteDataList();

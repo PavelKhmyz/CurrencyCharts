@@ -1,10 +1,10 @@
-async function sendRequest(url){
-    const response = await fetch(url);
-    const data = await response.json();
-    return data;
-};
-
-async function search(data){
+async function main(){
+    const userData = getUserData();
+    const curArr = await searchParentId(userData);
+    const getRate = await parseForGetRate(curArr, userData);
+    parseForChart(getRate, userData);
+}
+async function searchParentId(data){
     const request = await sendRequest(url);
     const curArr = [];
     let parentId;
@@ -16,96 +16,95 @@ async function search(data){
             curArr.push(element)
         };
     });
-    
-    if(!data.dateTo || new Date(data.dateFrom) - new Date(data.dateTo) < year){
-        const changeDate = new Date(data.dateFrom);
-        changeDate.setFullYear(new Date(changeDate).getFullYear() - 1);
-        data.dateTo = `${changeDate.getFullYear()}-${changeDate.getMonth() + 1}-${changeDate.getDate()}`;
-        getRate(curArr, data);
+    return curArr;
+};
+
+function parseForGetRate(curArr, userData){
+    if(!userData.dateTo || userData.dateFrom - userData.dateTo < year){
+        userData.dateTo = userData.dateFrom - year;
+        return getRate(curArr, userData);
     }
     else{
-        getRate(curArr, data);
+        return getRate(curArr, userData);
     };
-};
-
-function getCurId(curArr, data){
-    for(let i = 0; i < curArr.length; i++){
-        if (+ new Date(data.dateFrom) > + new Date(curArr[i].Cur_DateEnd)){
-
-        }
-        else {
-            return curArr[i].Cur_ID;
-        };
-    };
-};
-
-function getCurScale(curArr){
-    let CurScale;
-    curArr.forEach(element =>{
-        if(+ new Date (element.Cur_DateEnd) > + new Date()){
-            CurScale = element.Cur_Scale;
-        };
-    });
-    return CurScale;
-};
+}
 
 async function getRate(curArr, data){
     const rateArr = {curScale: getCurScale(curArr), rate: []};
-    
-    let requestCounter = Math.ceil(((new Date(data.dateFrom) - new Date(data.dateTo))) / year);
+    let requestCounter = Math.ceil((data.dateFrom - data.dateTo) / year);
     let start = data.dateTo;
-    let end =  `${new Date(start).getFullYear() + 1}-${new Date(start).getMonth() + 1}-${new Date(start).getDate()}`;
+    let end =  start + year;
     let curId = getCurId(curArr, data);
 
     for(let i = 0; i < requestCounter; i++){
         for(let i = 0; i < curArr.length; i++){
-            if(+ new Date(start) > + new Date(curArr[i].Cur_DateEnd)){
-
-            }
-            else if(+ new Date(start) >= + new Date(curArr[i].Cur_DateStart) && + new Date(end) <= + new Date(curArr[i].Cur_DateEnd)){
-                    curId = curArr[i].Cur_ID;
-
-                    const makeUrl = createUrl(curId, start, end);
-                    const request = await sendRequest(makeUrl);
-
-                    request.forEach(element => {
-                        element.Cur_Scale = curArr[i].Cur_Scale;
-                    })
-                    rateArr.rate.push(request);
-
-                    start = end;
-                    end = `${new Date(start).getFullYear() + 1}-${new Date(start).getMonth() + 1}-${new Date(start).getDate()}`;
-
-                    break;
-            }
-            else if(+ new Date(start) >= + new Date(curArr[i].Cur_DateStart) && + new Date(end) > + new Date(curArr[i].Cur_DateEnd)){
-                curId = curArr[i].Cur_ID;                   
-                end = curArr[i].Cur_DateEnd;
-
+            if(start > + new Date(curArr[i].Cur_DateEnd)){}
+            else if(start >= + new Date(curArr[i].Cur_DateStart) && end <= + new Date(curArr[i].Cur_DateEnd)){
+                curId = curArr[i].Cur_ID;
                 const makeUrl = createUrl(curId, start, end);
                 const request = await sendRequest(makeUrl);
-                request.Cur_Scale = curArr[i].Cur_Scale;
+                const addScale = addScaleInRate(request, curArr[i].Cur_Scale)
+                rateArr.rate = rateArr.rate.concat(addScale);
+                start = end;
+                end = start + year;
 
-                request.forEach(element => {
-                    element.Cur_Scale = curArr[i].Cur_Scale;
-                })
-                rateArr.rate.push(request);
-
+                break;
+            }
+            else if(start >= + new Date(curArr[i].Cur_DateStart) && end > + new Date(curArr[i].Cur_DateEnd)){
+                curId = curArr[i].Cur_ID;                   
+                end = + new Date(curArr[i].Cur_DateEnd);
+                const makeUrl = createUrl(curId, start, end);
+                const request = await sendRequest(makeUrl);
+                const addScale = addScaleInRate(request, curArr[i].Cur_Scale)
+                rateArr.rate = rateArr.rate.concat(addScale);
                 requestCounter += 1;
+                start = end + day;
+                end = start + year;
 
-                const setDate = new Date(end);
-                setDate.setDate(setDate.getDate() + 1)
-
-                start = `${setDate.getFullYear()}-${setDate.getMonth() + 1}-${setDate.getDate()}`;
-                end = `${new Date(start).getFullYear() + 1}-${new Date(start).getMonth() + 1}-${new Date(start).getDate()}`;
-                
                 break;
             };
         };
     };
-    parseForChart(rateArr, data)
+    return rateArr;
 };
 
+async function sendRequest(url){
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+};
+
+function getCurId(curArr, data){
+    curArr.forEach(element =>{
+        if (data.dateFrom > + new Date(element.Cur_DateEnd)){}
+        else {
+            return element.Cur_ID;
+        };
+    });
+};
+
+function getCurScale(curArr){
+    let curScale;
+    curArr.forEach(element =>{
+        if(+ new Date(element.Cur_DateEnd) > + new Date()){
+            curScale = element.Cur_Scale;
+        };
+    });
+    return curScale;
+};
+
+function addScaleInRate(request, mainCurScale){
+    request.forEach(element => {
+        element.Cur_Scale = mainCurScale;
+    })
+    return request;
+}
+
 function createUrl(curId, start, end) {
-    return `https://www.nbrb.by/api/exrates/rates/dynamics/${curId}?startDate=${start}&endDate=${end}`;
+    const parseStartDate = new Date(start);
+    const parseEndDate = new Date(end);
+    const startDate = `${parseStartDate.getFullYear()}-${parseStartDate.getMonth() + 1}-${parseStartDate.getDate()}`
+    const endDate = `${parseEndDate.getFullYear()}-${parseEndDate.getMonth() + 1}-${parseEndDate.getDate()}`
+
+    return `https://www.nbrb.by/api/exrates/rates/dynamics/${curId}?startDate=${startDate}&endDate=${endDate}`;
 };
