@@ -98,11 +98,10 @@ const data = {
     labels: labels,
     datasets: [
         {
-            label: 'Dataset',
+            label: 'Currency Rate',
             data: rate,
-            borderColor: 'rgb(255, 99, 132)',
+            borderColor: 'rgb(30,144,255)',
             backgroundColor: 'rgb(255, 99, 132)',
-            pointStyle: 'circle',
             pointRadius: 2,
             pointHoverRadius: 5
         }
@@ -117,7 +116,6 @@ const config = {
         plugins: {
             title: {
                 display: true,
-                text: (ctx) => 'Point Style: ' + ctx.chart.data.datasets[0].pointStyle,
             }
         }
     }
@@ -128,6 +126,7 @@ let chart;
 function parseForChart(rateArr, data){ // привести функцию в божеский вид
     labels.length = 0;
     rate.length = 0;
+    config.options.plugins.title.text = data.currencyName;
     let bla;
     if(!data.userDateTo){
       rateArr.rate.forEach(element =>{
