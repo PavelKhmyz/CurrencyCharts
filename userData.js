@@ -42,8 +42,6 @@ function getUserData(){
     userData.dateTo = + new Date(document.querySelector('.dateTo').value);
     userData.userDateFrom = document.querySelector('.dateFrom').value;
     userData.userDateTo = document.querySelector('.dateTo').value;
-    console.log(userData);
-    // search(userData);
     return userData;
 }
 

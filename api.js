@@ -65,6 +65,7 @@ async function getRate(curArr, data){
             };
         };
     };
+    console.log(rateArr)
     return rateArr;
 };
 

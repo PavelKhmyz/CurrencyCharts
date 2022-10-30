@@ -1,7 +1,7 @@
 let chart; 
 const labels = [];
 const rate = [];
-const denominateBorder = 10;
+const denominateBorder = 100;
 const denominateScale = 10000; 
 const data = {
   labels: labels,
@@ -35,7 +35,7 @@ function parseForChart(rateArr, data){ // привести функцию в б�
         rateArr.rate.forEach(elem => {
           if(elem.Date.slice(0, 10) === data.userDateFrom){
             labels.push(elem.Date.slice(0, 10));
-            const currencyRate = denominateRate(elem.Cur_Scale, rateArr.curScale, elem.Cur_OfficialRate)
+            const currencyRate = rateScale(elem, rateArr.curScale)
             rate.push(currencyRate)
           }
         });
@@ -44,7 +44,7 @@ function parseForChart(rateArr, data){ // привести функцию в б�
         rateArr.rate.forEach(elem => {
           if(elem.Date.slice(0, 10) >= data.userDateTo && elem.Date.slice(0, 10) <= data.userDateFrom){
             labels.push(elem.Date.slice(0, 10));
-            const currencyRate = denominateRate(elem.Cur_Scale, rateArr.curScale, elem.Cur_OfficialRate)
+            const currencyRate = rateScale(elem, rateArr.curScale)
             rate.push(currencyRate);
           };
         });
@@ -58,16 +58,28 @@ function parseForChart(rateArr, data){ // привести функцию в б�
     );
 };
 
-function denominateRate(mainCurScale, curScale, rate){
-  let currencyRate;
-  if(mainCurScale === curScale){
-    currencyRate = rate;
+function rateScale(elem, curScale){
+  let rate;
+  if(elem.Cur_Scale === curScale){
+    rate = elem.Cur_OfficialRate;
   }
   else{
-    currencyRate = rate * (curScale / mainCurScale);
+    rate = elem.Cur_OfficialRate * (curScale / elem.Cur_Scale);
   };
-  if (currencyRate > denominateBorder){
-    currencyRate = currencyRate / denominateScale;
-  };
+  const currencyRate = denominateRate(elem, rate)
   return currencyRate;
 }
+
+function denominateRate(elem, rate){
+  let denominate;
+  if (+ new Date(elem.Date.slice(0, 10)) < + new Date('2000-01-01')){
+    denominate = rate / 10000000
+  }
+  else {
+    denominate = rate
+  }
+  if (denominate > denominateBorder){
+    denominate = denominate / denominateScale;
+  };
+  return denominate;
+};
