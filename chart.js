@@ -1,7 +1,7 @@
 let chart; 
 const labels = [];
 const rate = [];
-const denominateBorder = 100;
+const denominateBorder = 100; // костыль
 const denominateScale = 10000; 
 const data = {
   labels: labels,
@@ -27,7 +27,7 @@ const config = {
   }
 };
 
-function parseForChart(rateArr, data){ // привести функцию в божеский вид
+function parseForChart(rateArr, data){
     labels.length = 0;
     rate.length = 0;
     config.options.plugins.title.text = data.currencyName;
@@ -77,7 +77,7 @@ function denominateRate(elem, rate){
   }
   else {
     denominate = rate
-  }
+  };
   if (denominate > denominateBorder){
     denominate = denominate / denominateScale;
   };
